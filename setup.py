@@ -15,7 +15,7 @@ description = "Command Executor"
 
 setup(
     name='minitunner',
-    version='0.1',
+    version='0.2',
     packages=find_packages(),
     # TODO: fix
     package_data= {

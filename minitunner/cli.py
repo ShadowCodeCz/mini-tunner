@@ -4,6 +4,7 @@ import logging
 import platform
 import socket
 import re
+import subprocess
 import uuid
 import json
 import glob
@@ -13,7 +14,8 @@ import mss
 import alphabetic_timestamp as ats
 
 from . import log
-
+from . import app_core
+from . import merge
 
 mini_tunner_file = ".mini.tunner"
 
@@ -24,7 +26,7 @@ def mkdir(arguments):
 
 class MkdirCommand:
     def __init__(self):
-        self.logger = logging.getLogger(log.logger_name)
+        self.logger = logging.getLogger(app_core.AppCore.name)
         self.arguments = None
         self.directory_path = None
         self.dt = None
@@ -43,6 +45,10 @@ class MkdirCommand:
         self.create_subdirectories()
 
         self.logger.info(f"{self.id()} {self.directory_path}")
+
+        self.open_explorer()
+        self.copy_path_to_clipboard()
+        self.switch_cwd()
 
     def parse_variables(self):
         for raw_variable in self.arguments.variables:
@@ -103,6 +109,23 @@ class MkdirCommand:
         for key in self.variables:
             self.directory_path = self.directory_path.replace("{%s}" % key, self.variables[key])
 
+    def open_explorer(self):
+        if self.arguments.explorer:
+            subprocess.Popen([f"explorer", f"{self.directory_path}"])
+
+    def switch_cwd(self):
+        if self.arguments.switch_cwd:
+            os.chdir(self.directory_path)
+            subprocess.run(["cmd"])
+
+    def copy_path_to_clipboard(self):
+        if self.arguments.copy_path_to_clipboard:
+            # echo = subprocess.Popen(('echo', self.directory_path), stdout=subprocess.PIPE)
+            # output = subprocess.check_output('clip', stdin=echo.stdout)
+            # echo.wait()
+            cmd = f"echo '{self.directory_path}' | clip"
+            echo_clip = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            output = echo_clip.communicate()[0]
 
 def ps(arguments):
     cmd = PrintScreenCommand()
@@ -157,6 +180,11 @@ class PrintScreenCommand:
     def read_tunner_file(self, path):
         with open(path, "r") as file:
             return json.load(file)
+
+
+def merge_all(arguments):
+    cmd = merge.MergeCommand()
+    cmd.run(arguments)
 
 
 
