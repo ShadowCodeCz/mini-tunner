@@ -44,7 +44,7 @@ class MergeCommand:
 
         tunner_mapper = TunnerFileMapper()
 
-        source_files = tunner_mapper.map(arguments.source, self.arguments.tunner_file)
+        source_files = tunner_mapper.map(self.source(), self.arguments.tunner_file)
         destination_files = tunner_mapper.map(arguments.destination, self.arguments.tunner_file)
 
         for trid, content in source_files.items():
@@ -58,11 +58,19 @@ class MergeCommand:
                     content["time"].replace(" ", "_").replace(":", "-"),
                 )
                 os.makedirs(os.path.dirname(destination_directory), exist_ok=True)
-                self.logger.info(f"Merge\nFrom: {source_directory}\nTo: {destination_directory}")
+                self.logger.info(f"src: {source_directory}\ndst: {destination_directory}")
+                self.logger.info(f"")
                 shutil.copytree(source_directory, destination_directory)
                 self.run_cmd(self.arguments.merge_cmd, destination_directory)
                 self.run_cmd(self.arguments.clean_cmd, source_directory)
         self.run_cmd(self.arguments.finish_cmd, os.getcwd())
+
+    def source(self):
+        if self.arguments.last_day:
+            sub_dirs = sorted([item for item in glob.glob(os.path.join(self.arguments.source, "*")) if os.path.isdir(item)])
+            return sub_dirs[-1]
+        else:
+            return self.arguments.source
 
     def project(self, content, default="other"):
         try:
@@ -73,7 +81,7 @@ class MergeCommand:
 
 
     def run_cmd(self, cmd, working_directory):
-        original_wd = os.getcwd()
+        original_wd = os.path.abspath(os.getcwd())
         os.chdir(working_directory)
 
         if cmd != None and cmd != "":

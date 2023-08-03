@@ -51,6 +51,7 @@ def main():
     merge_parser = subparsers.add_parser('merge')
     merge_parser.add_argument("-s", "--source", default=os.path.join(ac.app_directory(), "evidence"))
     merge_parser.add_argument("-d", "--destination", default=os.path.join(ac.app_directory(), "projects"))
+    merge_parser.add_argument("-l", "--last_day", action='store_true')
     merge_parser.add_argument("-t", "--tunner_file", default=cli.mini_tunner_file)
     merge_parser.add_argument("-b", "--clean_cmd", default="")
     merge_parser.add_argument("-m", "--merge_cmd", default="")
@@ -60,15 +61,3 @@ def main():
 
     arguments = parser.parse_args()
     arguments.func(arguments)
-
-# mkdir open explorer
-# merge --source --destination
-# extended.help.txt
-# record --type --value --comment
-# variables --items
-# logger
-
-# >
-
-
-# merge --source --destination --tunner_file --merge_file_command --finish_command
