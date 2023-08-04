@@ -187,4 +187,7 @@ def merge_all(arguments):
     cmd.run(arguments)
 
 
+def bind(arguments):
+    print(ats.base62.now())
+
 

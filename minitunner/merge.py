@@ -1,3 +1,4 @@
+import re
 import glob
 import json
 import logging
@@ -11,7 +12,7 @@ class TunnerFileMapper:
     def __init__(self):
         self.logger = logging.getLogger(app_core.AppCore.name)
 
-    def map(self, working_directory, file_template):
+    def map(self, working_directory, file_template, project_filter):
         result = {}
 
         template = os.path.join(working_directory, "**", file_template)
@@ -22,13 +23,23 @@ class TunnerFileMapper:
             self.logger.debug(f"TunnerFileMapper: \t located file={file}")
             try:
                 content = self.read_tunner_file(file)
-                trid = content["test.run.id"]
-                content["file.path"] = file
-                result[trid] = content
+                project = self.read_project(content)
+
+                if re.match(project_filter, project):
+                    trid = content["test.run.id"]
+                    content["file.path"] = file
+                    result[trid] = content
             except Exception as e:
                 self.logger.error(f"Parsing mini tunner file '{file}' failed. {e}")
 
         return result
+
+    def read_project(self, content, default="other"):
+        try:
+            return content["variables"]["project"]
+        except Exception as e:
+            return default
+
     def read_tunner_file(self, file):
         with open(file, "r") as f:
             return json.load(f)
@@ -44,8 +55,8 @@ class MergeCommand:
 
         tunner_mapper = TunnerFileMapper()
 
-        source_files = tunner_mapper.map(self.source(), self.arguments.tunner_file)
-        destination_files = tunner_mapper.map(arguments.destination, self.arguments.tunner_file)
+        source_files = tunner_mapper.map(self.source(), self.arguments.tunner_file, self.arguments.project_filter)
+        destination_files = tunner_mapper.map(arguments.destination, self.arguments.tunner_file, self.arguments.project_filter)
 
         for trid, content in source_files.items():
             self.logger.debug(f"MergeCommand: Process TRID={trid}")
@@ -61,6 +72,7 @@ class MergeCommand:
                 self.logger.info(f"src: {source_directory}\ndst: {destination_directory}")
                 self.logger.info(f"")
                 shutil.copytree(source_directory, destination_directory)
+                # TODO: WAIT
                 self.run_cmd(self.arguments.merge_cmd, destination_directory)
                 self.run_cmd(self.arguments.clean_cmd, source_directory)
         self.run_cmd(self.arguments.finish_cmd, os.getcwd())
