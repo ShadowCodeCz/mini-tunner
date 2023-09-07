@@ -19,6 +19,7 @@ from . import merge
 
 mini_tunner_file = ".mini.tunner"
 
+
 def mkdir(arguments):
     cmd = MkdirCommand()
     cmd.run(arguments)
@@ -73,7 +74,8 @@ class MkdirCommand:
             "time": str(self.dt),
             "variables": self.variables,
             "tags": self.tags,
-            "local.machine": self.local_machine_detail()
+            "local.machine": self.local_machine_detail(),
+            "records": []
         }
 
         with open(self.mini_tunner_file_path(), "w+") as file:
@@ -191,3 +193,42 @@ def bind(arguments):
     print(ats.base62.now())
 
 
+def add(arguments):
+    cmd = AddRecordCmd()
+    cmd.run(arguments)
+
+
+class AddRecordCmd:
+    def __init__(self):
+        self.logger = logging.getLogger(log.logger_name)
+        self.arguments = None
+
+    def run(self, arguments):
+        self.arguments = arguments
+
+        with open(arguments.path, "r") as input_file:
+            content = json.load(input_file)
+
+        if not "records" in content:
+            content["records"] = []
+
+        content["records"].append(self.parse_new_record())
+
+        with open(arguments.path, "w+") as output_file:
+            json.dump(content, output_file, indent=4)
+
+    def parse_new_record(self):
+        record = {
+            "type": self.arguments.type,
+            "tags": self.arguments.tags,
+            "time": str(datetime.datetime.now())
+        }
+
+        for raw_variable in self.arguments.variables:
+            if "=" in raw_variable:
+                split_parts = raw_variable.split("=")
+                record[split_parts[0]] = split_parts[1]
+            else:
+                self.logger.warning(f"Variable {raw_variable} skipped")
+
+        return record

@@ -21,7 +21,7 @@ def main():
         ac.app_directory(),
         "evidence",
         "%Y.%m.%d",
-        "%Y.%m.%d_%H-%M-%S_{test.id}_{location}"
+        "%Y.%m.%d_%H-%M-%S_{test.id}"
     )
 
     subparsers = parser.add_subparsers()
@@ -31,12 +31,17 @@ def main():
     mkdir_parser.add_argument("-p", "--path-template", default=mkdir_default_path)
     mkdir_parser.add_argument("-t", "--tags", default=[], nargs='*')
     mkdir_parser.add_argument("-v", "--variables", default=["project="], nargs='*')
-    mkdir_parser.add_argument("-s", "--sub-directories", default=["subdir"], nargs='*')
+    mkdir_parser.add_argument("-s", "--sub-directories", default=[], nargs='*')
     mkdir_parser.add_argument("-e", "--explorer", action='store_true')
     mkdir_parser.add_argument("-w", "--switch_cwd", action='store_true')
     mkdir_parser.add_argument("-c", "--copy_path_to_clipboard", action='store_true')
 
-    # TODO: add default values
+    add_record_parser = subparsers.add_parser('add')
+    add_record_parser.set_defaults(func=cli.add)
+    add_record_parser.add_argument("-p", "--path", default=cli.mini_tunner_file)
+    add_record_parser.add_argument("-t", "--type", required=True)
+    add_record_parser.add_argument("--tags", default=[], nargs='*')
+    add_record_parser.add_argument("-v", "--variables", default=[], nargs='*')
 
     print_screen_parser = subparsers.add_parser('ps')
     print_screen_parser.add_argument("-t", "--file-template", default="print_screens/{specific}_%Y.%m.%d_%H-%M-%S")
@@ -53,8 +58,8 @@ def main():
     merge_parser.add_argument("-l", "--last_day", action='store_true')
     merge_parser.add_argument("-t", "--tunner_file", default=cli.mini_tunner_file)
     merge_parser.add_argument("-p", "--project_filter", default=".*")
-    merge_parser.add_argument("-b", "--clean_cmd", default="")
     merge_parser.add_argument("-m", "--merge_cmd", default="")
+    merge_parser.add_argument("-c", "--clean_cmd", default="")
     merge_parser.add_argument("-f", "--finish_cmd", default="")
 
     merge_parser.set_defaults(func=cli.merge_all)

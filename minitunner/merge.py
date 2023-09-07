@@ -69,10 +69,9 @@ class MergeCommand:
                     content["time"].replace(" ", "_").replace(":", "-"),
                 )
                 os.makedirs(os.path.dirname(destination_directory), exist_ok=True)
-                self.logger.info(f"src: {source_directory}\ndst: {destination_directory}")
-                self.logger.info(f"")
+                self.logger.info(f"src: {source_directory}\n"
+                                 f"dst: {destination_directory}\n\n")
                 shutil.copytree(source_directory, destination_directory)
-                # TODO: WAIT
                 self.run_cmd(self.arguments.merge_cmd, destination_directory)
                 self.run_cmd(self.arguments.clean_cmd, source_directory)
         self.run_cmd(self.arguments.finish_cmd, os.getcwd())
@@ -91,13 +90,13 @@ class MergeCommand:
             self.logger.error(f"Mini tunner file '{content['file.path']}' does not contain 'project' in 'variables'")
             return default
 
-
     def run_cmd(self, cmd, working_directory):
         original_wd = os.path.abspath(os.getcwd())
         os.chdir(working_directory)
 
         if cmd != None and cmd != "":
             proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            output = proc.communicate()[0]
+            proc.communicate()
+            proc.wait()
 
         os.chdir(original_wd)
